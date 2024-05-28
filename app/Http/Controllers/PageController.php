@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Imagen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -48,5 +49,16 @@ class PageController extends Controller
         }
 
         return view('admin');
+    }
+
+    public function showImages()
+    {
+        // Verificar si el usuario está autenticado
+        if (!Session::has('authenticated')) {
+            return redirect()->route('login.form')->with('error', 'Debes iniciar sesión para acceder a esta página.');
+        }
+
+        $imagenes = Imagen::all();
+        return view('imagenes', compact('imagenes'));
     }
 }

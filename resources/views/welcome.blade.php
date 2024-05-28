@@ -62,10 +62,15 @@
 
         .comment strong {
             font-weight: bold;
+            color: black;
         }
 
-        .comment-button {
-            align-self: flex-end;
+        .comment p {
+            color: blue;
+        }
+
+        .toggle-comments {
+            margin-top: 5px;
         }
 
         .comment-form {
@@ -86,6 +91,17 @@
         .footer {
             background-color: #343a40;
             color: #fff;
+        }
+
+        .card-img-link {
+            display: block;
+            width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .card-img-link:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -126,9 +142,11 @@
                     </select>
                     <select class="form-select me-2 bg-dark text-white" aria-label="Filtro de año" id="yearFilter" name="ano">
                         <option value="">Seleccionar año</option>
-                        <option value="2026">2026</option>
-                        <option value="2025">2025</option>
                         <option value="2024">2024</option>
+                        <option value="2024">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2027</option>
+                        <option value="2024">2028</option>
                     </select>
                     <button class="btn btn-primary" type="submit">Filtrar</button>
                 </form>
@@ -136,191 +154,147 @@
         </div>
     </nav>
     <main class="container mt-4">
-        <div id="noImagesMessage" class="alert alert-warning d-none fade show" role="alert">
-            No hay imágenes disponibles para el mes y año seleccionados. <span id="recommendation"></span>
+        @if(session('error'))
+        <div class="alert alert-warning alert-dismissible fade show mt-4 animate__animated animate__bounceInRight" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        @endif
         @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show mt-4 animate__animated animate__bounceInRight" role="alert">
             {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         @endif
+
+        @if($imagenes->count() > 0)
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="imageContainer">
             @foreach ($imagenes as $img)
             <div class="col mb-4">
-                <div class="card bg-light text-dark shadow-sm image-card h-100 fade show animate__animated animate__fadeInUp" data-month="{{ date('n', strtotime($img->created_at)) }}" data-year="{{ date('Y', strtotime($img->created_at)) }}">
-                    <img src="{{ asset($img->imagen) }}" class="card-img-top img-fluid" alt="Imagen de {{ $img->name_alumno }}" onerror="this.src='imagenes/default.jpg';">
+                <div class="card bg-light text-dark shadow-sm image-card h-100" data-month="{{ date('n', strtotime($img->created_at)) }}" data-year="{{ date('Y', strtotime($img->created_at)) }}">
+                    <a href="#" class="card-img-link" data-bs-toggle="modal" data-bs-target="#imageModal{{$img->id}}">
+                        <img src="{{ asset($img->imagen) }}" class="card-img-top img-fluid" alt="Imagen de {{ $img->name_alumno }}" onerror="this.src='imagenes/default.jpg';">
+                    </a>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title animate__animated animate__pulse animate__infinite infinite">{{ $img->name_alumno }}</h5>
-                        <p class="card-text"><strong>Nombre:</strong> {{ $img->name }}</p>
-                        <p class="card-text"><strong>Grado:</strong> {{ $img->grado }}</p>
-                        <p class="card-text"><strong>Sesión:</strong> {{ $img->sesion }}</p>
-            
-                        <!-- Comentarios -->
-                        <div class="mt-3">
+                        <h5 class="card-title">{{ $img->name_alumno }}</h5>
+                        <p class="card-text">Título: {{ $img->name }}</p>
+                        <p class="card-text">Grado: {{ $img->grado }}</p>
+                        <p class="card-text">Sesion: {{ $img->sesion }}</p>
+                        <div class="comments-container">
                             <h6>Comentarios:</h6>
-                            <div class="comments-container">
-                                @if ($img->comentarios->isNotEmpty())
-                                    @foreach ($img->comentarios as $comentario)
-                                        <div class="comment">
-                                            <strong>{{ $comentario->comentarista }}</strong>: {{ $comentario->comentario }}
-                                        </div>
-                                    @endforeach
-                                @else
-                                    <p>No hay comentarios aún.</p>
-                                @endif
-                            </div>
-                            <!-- Botón para mostrar los comentarios -->
-                            <button class="btn btn-primary btn-sm mt-2 show-comments">Ver comentarios</button>
-                        </div>
-            
-                        <!-- Formulario de comentarios -->
-                        <div class="mt-3">
-                            <button class="btn btn-primary btn-sm mt-2 mb-2 comment-button">Comentar</button>
-                            <div class="comment-form d-none">
-                                <form action="{{ route('comentar.imagen', ['imageId' => $img->id]) }}" method="POST">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <input type="text" class="form-control" name="comentarista" placeholder="Tu nombre" required>
+                            <div class="comments-list" style="display: none;">
+                                @foreach($img->comentarios as $comentario)
+                                    <div class="comment">
+                                        <strong>{{ $comentario->comentarista }}:</strong>
+                                        <p>{{ $comentario->comentario }}</p>
                                     </div>
-                                    <div class="mb-3">
-                                        <textarea class="form-control" name="comentario" rows="2" placeholder="Tu comentario" required></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
-                                </form>
+                                @endforeach
                             </div>
+                            <button class="btn btn-success btn-sm toggle-comments mt-2">Mostrar Comentarios</button>
                         </div>
-            
-                        <!-- Like -->
-                        <form action="{{ route('like.imagen', ['imageId' => $img->id]) }}" method="POST" class="mt-3 ms-auto">
+                        <button class="btn btn-primary btn-sm mt-2 mb-2 toggle-comment-form">Comentar</button>
+                        <form action="{{ route('store.comment', $img->id) }}" method="POST" class="comment-form d-none">
                             @csrf
-                            <button type="submit" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-thumbs-up me-1"></i> Me gusta 
-                                @if ($img->likes)
-                                    <span class="badge bg-primary">{{ $img->likes->likes }}</span>
-                                @endif
+                            <div class="mb-3">
+                                <label for="comentarista" class="form-label">Tu nombre completo:</label>
+                                <input type="text" class="form-control" id="comentarista" name="comentarista" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comentario" class="form-label">Tu comentario:</label>
+                                <textarea class="form-control" id="comentario" name="comentario" rows="2" maxlength="100" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar</button>
+                        </form>
+                        <form action="{{ route('like.image', $img->id) }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-primary" onclick="likeImage({{ $img->id }})">
+                                Me gusta <span id="likeBadge{{ $img->id }}" class="badge bg-primary">{{ $img->likes->likes ?? 0 }}</span>
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
-            @endforeach
-        </div>
-    
-    </main>
-    <footer class="footer bg-dark text-white py-4 mt-4">
-        <div class="container text-center">
-            <p class="mb-1">&copy; 2024 ARTNEWTON. Todos los derechos reservados.</p>
-            <p class="mb-0">Síguenos en 
-                <a href="#" class="text-white">Twitter</a>, 
-                <a href="#" class="text-white">Facebook</a>, 
-                <a href="#" class="text-white">Instagram</a>.
-            </p>
-        </div>
-    </footer>
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">Imagen Ampliada</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalImage" src="#" class="img-fluid rounded" alt="Imagen ampliada">
+
+            <!-- Modal para mostrar imagen -->
+            <div class="modal fade" id="imageModal{{$img->id}}" tabindex="-1" aria-labelledby="imageModalLabel{{$img->id}}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="imageModalLabel{{$img->id}}">Imagen de {{ $img->name_alumno }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <img src="{{ asset($img->imagen) }}" class="img-fluid" alt="Imagen de {{ $img->name_alumno }}" onerror="this.src='imagenes/default.jpg';">
+                            <div class="mt-3">
+                                <p><strong>Título:</strong> {{ $img->name }}</p>
+                                <p><strong>Grado:</strong> {{ $img->grado }}</p>
+                                <p><strong>Sesión:</strong> {{ $img->sesion }}</p>
+                            </div>
+                            <div class="comments-container mt-3">
+                                <h6>Comentarios:</h6>
+                                <div class="comments-list">
+                                    @foreach($img->comentarios as $comentario)
+                                        <div class="comment">
+                                            <strong>{{ $comentario->comentarista }}:</strong>
+                                            <p>{{ $comentario->comentario }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            @endforeach
         </div>
-    </div>
+        @else
+        <p class="text-center mt-4">No hay imágenes disponibles.</p>
+        @endif
+    </main>
     
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-ZFQV5DVCn4XHbby7dOStTFUS1HIe9c4fF" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    
+    <footer class="footer mt-auto py-3 bg-dark text-white">
+        <div class="container text-center">
+            <p>&copy; 2023 ARTNEWTON. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Obtener todas las imágenes de las tarjetas
-            var cardImages = document.querySelectorAll('.image-card .card-img-top');
-    
-            // Recorrer cada imagen para agregar un evento clic
-            cardImages.forEach(function(img) {
-                img.addEventListener('click', function() {
-                    // Obtener la ruta de la imagen
-                    var imgSrc = this.getAttribute('src');
-                    // Actualizar la imagen del modal con la nueva ruta
-                    document.getElementById('modalImage').setAttribute('src', imgSrc);
-                    // Mostrar el modal
-                    var modal = new bootstrap.Modal(document.getElementById('imageModal'));
-                    modal.show();
-                });
-            });
-    
-            // Obtener todos los botones "Ver comentarios"
-            var showCommentButtons = document.querySelectorAll('.show-comments');
-    
-            // Recorrer cada botón para agregar un evento click
-            showCommentButtons.forEach(function(button) {
+            document.querySelectorAll('.toggle-comments').forEach(function(button) {
                 button.addEventListener('click', function() {
-                    // Obtener el contenedor de comentarios
-                    var commentsContainer = this.closest('.card-body').querySelector('.comments-container');
-                    // Mostrar los comentarios
-                    commentsContainer.classList.toggle('d-none');
-    
-                    // Si se muestran los comentarios, asegurarse de que se ajuste el scroll
-                    if (!commentsContainer.classList.contains('d-none')) {
-                        commentsContainer.scrollTop = commentsContainer.scrollHeight;
-                    }
-                });
-            });
-    
-            // Ocultar todos los contenedores de comentarios al principio
-            var commentsContainers = document.querySelectorAll('.comments-container');
-            commentsContainers.forEach(function(container) {
-                container.classList.add('d-none');
-            });
-    
-            // Obtener todos los botones "Comentar"
-            var commentButtons = document.querySelectorAll('.comment-button');
-    
-            // Recorrer cada botón para agregar un evento click
-            commentButtons.forEach(function(button) {
-                button.addEventListener('click', function() {
-                    // Obtener el formulario de comentarios
-                    var commentForm = this.closest('.card-body').querySelector('.comment-form');
-                    // Mostrar el formulario de comentarios
-                    commentForm.classList.toggle('d-none');
-                });
-            });
-    
-            // Función para filtrar imágenes
-            function filterImages() {
-                var monthFilter = document.getElementById('monthFilter').value;
-                var yearFilter = document.getElementById('yearFilter').value;
-                var cards = document.getElementsByClassName('image-card');
-                var noImagesMessage = document.getElementById('noImagesMessage');
-                var recommendation = document.getElementById('recommendation');
-                var noImages = true;
-    
-                for (var i = 0; i < cards.length; i++) {
-                    var card = cards[i];
-                    var cardMonth = card.getAttribute('data-month');
-                    var cardYear = card.getAttribute('data-year');
-    
-                    if ((monthFilter === '' || cardMonth === monthFilter) && (yearFilter === '' || cardYear === yearFilter)) {
-                        card.parentElement.style.display = 'block';
-                        noImages = false;
+                    var commentsList = this.previousElementSibling;
+                    if (commentsList.style.display === 'none' || commentsList.style.display === '') {
+                        commentsList.style.display = 'block';
+                        this.textContent = 'Ocultar Comentarios';
                     } else {
-                        card.parentElement.style.display = 'none';
+                        commentsList.style.display = 'none';
+                        this.textContent = 'Mostrar Comentarios';
                     }
-                }
-    
-                if (noImages) {
-                    noImagesMessage.classList.remove('d-none');
-                    recommendation.textContent = monthFilter === '' ? '' : 'Seleccione un mes diferente';
-                } else {
-                    noImagesMessage.classList.add('d-none');
-                }
-            }
+                });
+            });
+
+            document.querySelectorAll('.toggle-comment-form').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var form = this.nextElementSibling;
+                    if (form.classList.contains('d-none')) {
+                        form.classList.remove('d-none');
+                    } else {
+                        form.classList.add('d-none');
+                    }
+                });
+            });
         });
+
+        function likeImage(imageId) {
+            var likeBadge = document.getElementById('likeBadge' + imageId);
+            var currentLikes = parseInt(likeBadge.textContent);
+            likeBadge.textContent = currentLikes + 1;
+        }
     </script>
-    
 </body>
 </html>

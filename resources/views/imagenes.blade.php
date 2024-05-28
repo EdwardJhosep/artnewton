@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,63 +42,83 @@
     </nav>
 </header>
 
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <main class="container mt-4">
-    
     <div class="row mb-4">
         <div class="col">
-            <form action="{{ route('filtra.imagenes') }}" method="GET" class="form-inline">
-                <label for="mes" class="mr-2">Mes:</label>
-                <select name="mes" id="mes" class="form-control mr-2">
-                    <option value="">Todos</option>
-                    <option value="01" {{ request('mes') == '01' ? 'selected' : '' }}>Enero</option>
-                    <option value="02" {{ request('mes') == '02' ? 'selected' : '' }}>Febrero</option>
-                    <option value="03" {{ request('mes') == '03' ? 'selected' : '' }}>Marzo</option>
-                    <option value="04" {{ request('mes') == '04' ? 'selected' : '' }}>Abril</option>
-                    <option value="05" {{ request('mes') == '05' ? 'selected' : '' }}>Mayo</option>
-                    <option value="06" {{ request('mes') == '06' ? 'selected' : '' }}>Junio</option>
-                    <option value="07" {{ request('mes') == '07' ? 'selected' : '' }}>Julio</option>
-                    <option value="08" {{ request('mes') == '08' ? 'selected' : '' }}>Agosto</option>
-                    <option value="09" {{ request('mes') == '09' ? 'selected' : '' }}>Septiembre</option>
-                    <option value="10" {{ request('mes') == '10' ? 'selected' : '' }}>Octubre</option>
-                    <option value="11" {{ request('mes') == '11' ? 'selected' : '' }}>Noviembre</option>
-                    <option value="12" {{ request('mes') == '12' ? 'selected' : '' }}>Diciembre</option>
-                </select>
-
-                <label for="ano" class="mr-2">Año:</label>
-                <select name="ano" id="ano" class="form-control mr-2">
-                    @foreach(range(date("Y"), date("Y") + 5) as $ano)
-                        <option value="{{ $ano }}" {{ request('ano') == $ano ? 'selected' : '' }}>{{ $ano }}</option>
-                    @endforeach
-                </select>
-
-                <button type="submit" class="btn btn-primary">Filtrar</button>
+            <form action="{{ route('ver.imagenes') }}" method="GET" class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label for="month" class="visually-hidden">Selecciona Mes</label>
+                    <select name="month" id="month" class="form-select">
+                        <option value="">Selecciona Mes</option>
+                        @foreach([
+                            '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo',
+                            '04' => 'Abril', '05' => 'Mayo', '06' => 'Junio',
+                            '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre',
+                            '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+                        ] as $key => $mes)
+                            <option value="{{ $key }}" {{ Request::get('month') == $key ? 'selected' : '' }}>
+                                {{ $mes }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label for="year" class="visually-hidden">Selecciona Año</label>
+                    <select name="year" id="year" class="form-select">
+                        <option value="">Selecciona Año</option>
+                        @foreach(range(date("Y"), 2010) as $y)
+                            <option value="{{ $y }}" {{ Request::get('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
             </form>
         </div>
     </div>
-
     <div class="row">
-        @foreach ($imagenes as $img)
+        @forelse ($imagenes as $img)
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card border-primary shadow-sm">
-                    <img src="{{ asset($img->imagen) }}" class="card-img-top img-fluid" alt="Imagen de {{ $img->name_alumno }}" onerror="this.src='{{ asset('imagenes/default.jpg') }}';">
+                    <img src="{{ asset($img->imagen) }}" class="card-img-top img-fluid" alt="Imagen de {{ $img->name_alumno }}" onerror="this.src='{{ asset('imagenes/placeholder.png') }}'">
                     <div class="card-body">
                         <h5 class="card-title">{{ $img->name_alumno }}</h5>
-                        <p class="card-text">Nombre: {{ $img->name }}</p>
-                        <p class="card-text">Grado: {{ $img->grado }}</p>
-                        <p class="card-text">Sesión: {{ $img->sesion }}</p>
-                        <p class="card-text">Fecha de creación: {{ $img->created_at->format('d/m/Y') }}</p>
-                        <form action="{{ route('eliminar.imagen', $img->id) }}" method="POST">
+                        <p class="card-text"><strong>Grado:</strong> {{ $img->grado }}</p>
+                        <p class="card-text"><strong>Sesión:</strong> {{ $img->sesion }}</p>
+                        <form action="{{ route('eliminar.imagen', $img->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta imagen?');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Eliminar</button>
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
                         </form>
                     </div>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    No se encontraron imágenes.
+                </div>
+            </div>
+        @endforelse
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
 </body>
 </html>

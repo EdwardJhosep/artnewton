@@ -5,71 +5,111 @@ namespace App\Http\Controllers;
 use App\Models\Imagen;
 use App\Models\Comentario;
 use App\Models\Like;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VerImagenesController extends Controller
 {
     public function index()
     {
-        // Obtener todas las imágenes (puedes ajustar esta lógica según sea necesario)
-        $imagenes = Imagen::orderBy('created_at', 'desc')->get();
+        // Obtener el mes y año actual
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
 
-        return view('welcome', compact('imagenes'));
-    }
-
-    public function filtrarImagenes(Request $request)
-    {
-        // Obtener los parámetros de filtrado desde el formulario
-        $mes = $request->input('mes');
-        $ano = $request->input('ano');
-
-        // Filtrar imágenes según los parámetros recibidos
-        $imagenes = Imagen::whereMonth('created_at', $mes)
-            ->whereYear('created_at', $ano)
+        // Filtrar las imágenes según el mes y año actual
+        $imagenes = Imagen::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Puedes personalizar el mensaje si no hay imágenes
-        if ($imagenes->isEmpty()) {
-            return redirect()->route('inicio')->with('error', 'No hay imágenes disponibles para el mes y año seleccionados.');
-        }
-
-        // Si hay imágenes, retornar la vista con las imágenes filtradas
         return view('welcome', compact('imagenes'));
     }
-    
+    public function index1()
+    {
+        // Obtener el mes y año actual
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+
+        // Filtrar las imágenes según el mes y año actual
+        $imagenes = Imagen::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('imagenes', compact('imagenes'));
+    }
+
+
+    public function filtrarImagenes(Request $request)
+    {
+        $mes = $request->input('mes');
+        $ano = $request->input('ano');
+
+        $query = Imagen::query();
+
+        if ($mes) {
+            $query->whereMonth('created_at', $mes);
+        }
+
+        if ($ano) {
+            $query->whereYear('created_at', $ano);
+        }
+
+        $imagenes = $query->orderBy('created_at', 'desc')->get();
+
+        if ($imagenes->isEmpty()) {
+            // Buscar el mes más reciente con imágenes disponibles
+            $mesRecomendado = Imagen::whereYear('created_at', $ano)
+                ->selectRaw('MONTH(created_at) as mes')
+                ->groupBy('mes')
+                ->orderByRaw('COUNT(*) DESC')
+                ->pluck('mes')
+                ->first();
+
+            $nombreMes = Carbon::create()->month($mesRecomendado)->format('F');
+
+            return redirect()->route('inicio')->with('error', "No hay imágenes disponibles para el mes y año seleccionados. Te recomendamos revisar el mes de $nombreMes.");
+        }
+
+        return view('welcome', compact('imagenes'));
+    }
+    public function filtraImagenes1(Request $request)
+    {
+        $mes = $request->get('mes');
+
+        if ($mes) {
+            $imagenes = Imagen::whereMonth('created_at', $mes)
+                              ->whereYear('created_at', now()->year)
+                              ->orderBy('created_at', 'desc')
+                              ->get();
+        } else {
+            $imagenes = Imagen::orderBy('created_at', 'desc')->get();
+        }
+
+        return view('imagenes', compact('imagenes'));
+    }
+
     public function volver()
     {
         $imagenes = Imagen::all();
         return view('welcome', compact('imagenes'));
     }
-    
+
     public function eliminar($id)
     {
         $imagen = Imagen::findOrFail($id);
         $imagen->delete();
-        
+
         return redirect()->route('ver.imagenes')->with('success', 'Imagen eliminada correctamente');
     }
 
-    
-    public function ver(Request $request)
+    public function ver($id)
     {
-        $query = Imagen::query();
-
-        if ($request->has('mes') && $request->mes != '') {
-            $query->whereMonth('created_at', $request->mes);
-        }
-
-        if ($request->has('ano') && $request->ano != '') {
-            $query->whereYear('created_at', $request->ano);
-        }
-
-        $imagenes = $query->get();
-
-        return view('imagenes', compact('imagenes'));
+        $imagen = Imagen::findOrFail($id);
+        return view('ver-imagen', compact('imagen'));
     }
-    
+
     public function storeComment(Request $request, $imageId)
     {
         $request->validate([
@@ -97,10 +137,11 @@ class VerImagenesController extends Controller
 
         return redirect()->back()->with('success', 'Imagen marcada como me gusta');
     }
+
     public function indexWithComments()
-{
-    $imagenes = Imagen::with(['comentarios', 'likes'])->get();
-    return view('welcome', compact('imagenes'));
+    {
+        $imagenes = Imagen::with(['comentarios', 'likes'])->get();
+        return view('welcome', compact('imagenes'));
+    }
 }
 
-}
