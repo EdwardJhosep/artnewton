@@ -110,13 +110,14 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <img src="imagenes/isaacnewton.jpg" alt="Logo" class="rounded-circle" width="40" height="40">
-                <span class="ms-2">ARTNEWTON</span>
+                <span class="ms-2 fw-bold">ISAAC NEWTON</span>
+                <p style="margin-bottom: 0; margin-top: 0; margin-left: 0; margin-right: 0; color: #888;">𝐄𝐝𝐮𝐜𝐚𝐧𝐝𝐨 𝐩𝐚𝐫𝐚 𝐞𝐥 𝐟𝐮𝐭𝐮𝐫𝐨</p>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+                <ul class="navbar-nav mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="#">Inicio</a>
                     </li>
@@ -124,7 +125,7 @@
                         <a class="nav-link" href="{{ route('login') }}">Login</a>
                     </li>
                 </ul>
-                <form class="d-flex" id="filterForm" action="{{ route('filtrar.imagenes') }}" method="GET">
+                <form class="d-flex">
                     <select class="form-select me-2 bg-dark text-white" aria-label="Filtro de mes" id="monthFilter" name="mes">
                         <option value="">Seleccionar mes</option>
                         <option value="1">Enero</option>
@@ -143,16 +144,22 @@
                     <select class="form-select me-2 bg-dark text-white" aria-label="Filtro de año" id="yearFilter" name="ano">
                         <option value="">Seleccionar año</option>
                         <option value="2024">2024</option>
-                        <option value="2024">2025</option>
+                        <option value="2025">2025</option>
                         <option value="2026">2026</option>
-                        <option value="2025">2027</option>
-                        <option value="2024">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
                     </select>
                     <button class="btn btn-primary" type="submit">Filtrar</button>
                 </form>
             </div>
         </div>
     </nav>
+    
+    <section class="container mt-4">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading">Bienvenido a la Galería de Imágenes del Isaac Newton</h4>
+            <p class="mb-0">Explora las creaciones artísticas de nuestros alumnos. Haz clic en las imágenes para verlas en detalle.</p>
+        </div>
     <main class="container mt-4">
         @if(session('error'))
         <div class="alert alert-warning alert-dismissible fade show mt-4 animate__animated animate__bounceInRight" role="alert">
@@ -179,7 +186,7 @@
                         <h5 class="card-title">{{ $img->name_alumno }}</h5>
                         <p class="card-text">Título: {{ $img->name }}</p>
                         <p class="card-text">Grado: {{ $img->grado }}</p>
-                        <p class="card-text">Sesion: {{ $img->sesion }}</p>
+                        <p class="card-text">Sección: {{ $img->sesion }}</p>
                         <div class="comments-container">
                             <h6>Comentarios:</h6>
                             <div class="comments-list" style="display: none;">
