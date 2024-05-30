@@ -45,19 +45,19 @@ class VerImagenesController extends Controller
     {
         $mes = $request->input('mes');
         $ano = $request->input('ano');
-
+    
         $query = Imagen::query();
-
+    
         if ($mes) {
             $query->whereMonth('created_at', $mes);
         }
-
+    
         if ($ano) {
             $query->whereYear('created_at', $ano);
         }
-
+    
         $imagenes = $query->orderBy('created_at', 'desc')->get();
-
+    
         if ($imagenes->isEmpty()) {
             // Buscar el mes más reciente con imágenes disponibles
             $mesRecomendado = Imagen::whereYear('created_at', $ano)
@@ -66,14 +66,15 @@ class VerImagenesController extends Controller
                 ->orderByRaw('COUNT(*) DESC')
                 ->pluck('mes')
                 ->first();
-
-            $nombreMes = Carbon::create()->month($mesRecomendado)->format('F');
-
+    
+            $nombreMes = $mesRecomendado ? Carbon::create()->month($mesRecomendado)->locale('es')->monthName : 'Ninguno';
+    
             return redirect()->route('inicio')->with('error', "No hay imágenes disponibles para el mes y año seleccionados. Te recomendamos revisar el mes de $nombreMes.");
         }
-
+    
         return view('welcome', compact('imagenes'));
     }
+    
     public function filtraImagenes1(Request $request)
     {
         $mes = $request->get('mes');

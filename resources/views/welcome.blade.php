@@ -150,7 +150,7 @@
                         <option value="2028">2028</option>
                     </select>
                     <button class="btn btn-primary" type="submit">Filtrar</button>
-                </form>
+                </form>                
             </div>
         </div>
     </nav>
@@ -227,7 +227,7 @@
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="imageModalLabel{{$img->id}}">Imagen de {{ $img->name_alumno }}</h5>
+                            <h5 class="modal-title" id="imageModalLabel{{$img->id}}">Obra de {{ $img->name_alumno }}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -297,23 +297,24 @@
             });
 
             // Filtro por mes y año
-            document.querySelector('form.d-flex').addEventListener('submit', function(event) {
-                event.preventDefault();
-                var selectedMonth = document.getElementById('monthFilter').value;
-                var selectedYear = document.getElementById('yearFilter').value;
+            document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('form.d-flex').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var selectedMonth = document.getElementById('monthFilter').value;
+            var selectedYear = document.getElementById('yearFilter').value;
 
-                document.querySelectorAll('.image-card').forEach(function(card) {
-                    var cardMonth = card.getAttribute('data-month');
-                    var cardYear = card.getAttribute('data-year');
-                    
-                    if ((selectedMonth === '' || selectedMonth == cardMonth) && (selectedYear === '' || selectedYear == cardYear)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+            document.querySelectorAll('.image-card').forEach(function(card) {
+                var cardMonth = parseInt(card.getAttribute('data-month'));
+                var cardYear = parseInt(card.getAttribute('data-year'));
+                
+                if ((selectedMonth === '' || parseInt(selectedMonth) === cardMonth) && (selectedYear === '' || parseInt(selectedYear) === cardYear)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
             });
         });
+    });
 
         function likeImage(imageId) {
             var likeBadge = document.getElementById('likeBadge' + imageId);
