@@ -111,8 +111,8 @@
             <a class="navbar-brand" href="#">
                 <img src="imagenes/isaacnewton.jpg" alt="Logo" class="rounded-circle" width="40" height="40">
                 <span class="ms-2 fw-bold">ISAAC NEWTON</span>
-                <p style="margin-bottom: 0; margin-top: 0; margin-left: 0; margin-right: 0; color: #888;">𝐄𝐝𝐮𝐜𝐚𝐧𝐝𝐨 𝐩𝐚𝐫𝐚 𝐞𝐥 𝐟𝐮𝐭𝐮𝐫𝐨</p>
-            </a>
+                <p style="margin: 0; color: #888;">𝐄𝐝𝐮𝐜𝐚𝐧𝐝𝐨 𝐩𝐚𝐫𝐚 𝐞𝐥 𝐟𝐮𝐭𝐮𝐫𝐨</p>
+            </a>            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -156,10 +156,17 @@
     </nav>
     
     <section class="container mt-4">
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <h4 class="alert-heading">Bienvenido a la Galería de Imágenes de la institucion educativa Isaac Newton</h4>
-            <p class="mb-0">Explora las creaciones artísticas de nuestros alumnos. Haz clic en las imágenes para verlas en detalle.</p>
+        <style>
+            .alert-custom {
+                text-align: center;
+            }
+        </style>
+        
+        <div class="alert alert-info alert-dismissible fade show alert-custom" role="alert">
+            <h4 class="alert-heading">Bienvenido a la Galería de los trabajos de dibujo y pintura de la institución educativa Isaac Newton</h4>
+            <p class="mb-0">Explora las creaciones artísticas de nuestros estudiantes. Haz clic en las imágenes para verlas en detalle.</p>
         </div>
+        
     <main class="container mt-4">
         @if(session('error'))
         <div class="alert alert-warning alert-dismissible fade show mt-4 animate__animated animate__bounceInRight" role="alert">
