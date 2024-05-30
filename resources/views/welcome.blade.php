@@ -125,7 +125,7 @@
                         <a class="nav-link" href="{{ route('login') }}">Login</a>
                     </li>
                 </ul>
-                <form class="d-flex">
+                <form class="d-flex" method="GET" action="{{ route('filtrar.imagenes') }}">
                     <select class="form-select me-2 bg-dark text-white" aria-label="Filtro de mes" id="monthFilter" name="mes">
                         <option value="">Seleccionar mes</option>
                         <option value="1">Enero</option>
@@ -157,7 +157,7 @@
     
     <section class="container mt-4">
         <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <h4 class="alert-heading">Bienvenido a la Galería de Imágenes del Isaac Newton</h4>
+            <h4 class="alert-heading">Bienvenido a la Galería de Imágenes de la institucion educativa Isaac Newton</h4>
             <p class="mb-0">Explora las creaciones artísticas de nuestros alumnos. Haz clic en las imágenes para verlas en detalle.</p>
         </div>
     <main class="container mt-4">
@@ -292,6 +292,24 @@
                         form.classList.remove('d-none');
                     } else {
                         form.classList.add('d-none');
+                    }
+                });
+            });
+
+            // Filtro por mes y año
+            document.querySelector('form.d-flex').addEventListener('submit', function(event) {
+                event.preventDefault();
+                var selectedMonth = document.getElementById('monthFilter').value;
+                var selectedYear = document.getElementById('yearFilter').value;
+
+                document.querySelectorAll('.image-card').forEach(function(card) {
+                    var cardMonth = card.getAttribute('data-month');
+                    var cardYear = card.getAttribute('data-year');
+                    
+                    if ((selectedMonth === '' || selectedMonth == cardMonth) && (selectedYear === '' || selectedYear == cardYear)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
                     }
                 });
             });
